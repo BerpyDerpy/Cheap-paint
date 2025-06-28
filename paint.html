@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paint</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1 { margin-bottom: 10px; }
+
+    #toolbar {
+      margin-bottom: 10px;
+    }
+    .color-button, #clear-button {
+      width: 30px;
+      height: 30px;
+      margin-right: 5px;
+      cursor: pointer;
+    }
+    #clear-button {
+      width: auto;
+      padding: 0 10px;
+
+    }
+    canvas {
+      border: 1px solid #333;
+      touch-action: none; 
+    }
+  </style>
+</head>
+<body>
+  <h1>cheap Paint</h1>
+  <div id="toolbar">
+
+    <div class="color-button" data-color="black" style="background:black"></div>
+    <div class="color-button" data-color="red" style="background:red"></div>
+    <div class="color-button" data-color="lightgreen" style="background:lightgreen"></div>
+    <div class="color-button" data-color="blue" style="background:blue"></div>
+  
+    <button id="clear-button">Clear</button>
+  </div>
+  <canvas id="drawcanvas" width="600" height="400"></canvas>
+
+  <script>
+   
+    const canvas = document.getElementById('drawcanvas');
+    const ctx = canvas.getContext('2d');
+
+    let drawing = false;
+    let currentColor = '#000000';
+
+    document.querySelectorAll('.color-button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentColor = btn.getAttribute('data-color');
+      });
+    });
+    document.getElementById('clear-button').addEventListener('click', () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    // Function to get mouse/touch position
+    function getPos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      if (evt.touches) {
+        return {
+          x: evt.touches[0].clientX - rect.left, //convert window coords to canvas relative coords
+          y: evt.touches[0].clientY - rect.top  //clientX returns window coords, touches[0] is first finger
+        };
+      }
+      return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
+      };
+    }
+
+    // Start drawing
+    function startDraw(evt) {
+      drawing = true;
+      const pos = getPos(evt);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+      ctx.strokeStyle = currentColor;
+      ctx.lineWidth = 2;
+    }
+
+    function draw(evt) {
+      if (!drawing) return;
+      const pos = getPos(evt);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke(); 
+    }
+
+    function stopDraw(evt) {
+      if (!drawing) return;
+      ctx.closePath();
+      drawing = false;
+    }
+
+    // Mouse events
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('mouseout', stopDraw);
+
+    // Touch events
+    canvas.addEventListener('touchstart', startDraw);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDraw);
+    canvas.addEventListener('touchcancel', stopDraw);
+  </script>
+</body>
+</html>
